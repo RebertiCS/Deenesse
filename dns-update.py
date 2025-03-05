@@ -24,7 +24,18 @@ def main():
     if ipv4 != ipv6:
         print("## Updated IPV4: ", ipv4)
 
-    info = get_config()
+    req_data = get_config()
+
+    print("# DNS Updates\n")
+    for dns in req_data["result"]:
+        if os.getenv("CF_DNS") == dns["name"]:
+            if dns["type"] == "AAAA":
+                print(" - IPv6:", os.getenv("CF_DNS"), "to", ipv6)
+                update_config(dns["name"], ipv6, dns["id"])
+
+            elif dns["type"] == "A":
+                print(" - IPv4:", os.getenv("CF_DNS"), "to", ipv4)
+                #update_config(dns["name"], ipv4)
 
 
 def get_config():
@@ -41,23 +52,15 @@ def get_config():
 
     request_data = json.loads(str(response.content).replace("b\'", "").replace("\'",""))
 
-    print(request_data)
-
-    dns_config = "{ "
-
     print("\n# DNS Configuration\n")
+
     for data in request_data["result"]:
         print(" - Name: ", data["name"], "\n\t+ Id:\t", data["id"], "\n\t+ Type:\t", data["type"], "\n\t+ IP:\t", data["content"], "\n")
-        dns_config = dns_config + '{\'name\': \'' + data["name"] + '\',\'id\':\'' + data["id"] + '\' },'
-
-    dns_config = dns_config + '}'
-
-    print(dns_config)
 
     return request_data
 
 
-def update_config(dns_name, ip):
+def update_config(dns_name, dns_ip, dns_id):
 
     headers = {
         'Content-Type': 'application/json',
@@ -66,25 +69,20 @@ def update_config(dns_name, ip):
 
     json_data = {
         'comment': 'Domain verification record',
-        'content': ip,
+        'content': dns_ip,
         'name': dns_name,
         'proxied': False,
-        'settings': {
-            'ipv4_only': False,
-            'ipv6_only': True,
-        },
-        'tags': [
-            'owner:dns-team',
-        ],
-        'ttl': 3600,
+        'ttl': 1,
         'type': 'AAAA',
     }
 
     response = requests.patch(
-        'https://api.cloudflare.com/client/v4/zones/' + os.getenv.get('CF_ZONE') + '/dns_records/' + os.getenv('DNS_RECORD_ID', ''),
+        'https://api.cloudflare.com/client/v4/zones/' + os.getenv('CF_ZONE') + '/dns_records/' + dns_id,
         headers=headers,
         json=json_data,
     )
+
+    print(response.content)
 
 
 
