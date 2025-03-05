@@ -12,28 +12,23 @@ global ipv4
 
 def main():
 
-    ipv6 = str(requests.get("https://ipv6.icanhazip.com").content).replace("b\'", '')
-    ipv6 = ipv6.replace("\\n\'", '')
+    ipv6 = str(requests.get("https://ipv6.icanhazip.com").content).replace("b\'", '').replace("\\n\'", '')
+    ipv4 = str(requests.get("https://icanhazip.com").content).replace("b\'", '').replace("\\n\'", '')
+    dns_list = os.getenv("CF_DNS").split(",")
 
-    ipv4 = str(requests.get("https://icanhazip.com").content).replace("b\'", '')
-    ipv4 = ipv4.replace("\\n\'", '')
-
-    print("# MorpheusDNS v1.0")
-    print("## Updated IPV6: ", ipv6)
+    print("# MorpheusDNS v1.0", "\n## Updated IPV6: ", ipv6)
 
     if ipv4 != ipv6:
         print("## Updated IPV4: ", ipv4)
 
     req_data = get_config()
 
-    dns_list = os.getenv("CF_DNS").split(",")
-
     print("# DNS Updates\n")
     for dns in req_data["result"]:
-        for dns_obj in dns_list:
-            if dns_obj == dns["name"]:
+        for dns_name in dns_list:
+            if dns_name == dns["name"]:
 
-                print("Name:", dns_obj, "\nType:", dns["type"], "\n - Old:",  dns["content"], "\n - New:", ipv6)
+                print("Name:", dns_name, "\nType:", dns["type"], "\n - Old:",  dns["content"], "\n - New:", ipv6)
                 update_config(dns["name"], ipv4, dns["id"], dns["type"])
 
 
