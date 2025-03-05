@@ -32,13 +32,9 @@ def main():
     for dns in req_data["result"]:
         for dns_obj in dns_list:
             if dns_obj == dns["name"]:
-                if dns["type"] == "AAAA":
-                    print(" - IPv6:", dns_obj, "to", ipv6)
-                    update_config(dns["name"], ipv6, dns["id"], os.getenv("CF_PROXY"))
 
-                elif dns["type"] == "A":
-                    print(" - IPv4:", dns_obj, "to", ipv4)
-                    update_config(dns["name"], ipv4, os.getenv("CF_PROXY"))
+                print("Name:", dns_obj, "\nType:", dns["type"], "\n - Old:",  dns["content"], "\n - New:", ipv6)
+                update_config(dns["name"], ipv4, dns["id"], dns["type"])
 
 
 def get_config():
@@ -63,12 +59,12 @@ def get_config():
     return request_data
 
 
-def update_config(dns_name, dns_ip, dns_id, dns_proxy):
+def update_config(dns_name, dns_ip, dns_id, dns_type):
 
-    if dns_proxy == "False":
-        c_proxy = False
-    else:
-        c_proxy = True
+    cf_proxy = True
+
+    if os.getenv('CF_PROXY') == "False":
+        cf_proxy = False
 
     headers = {
         'Content-Type': 'application/json',
@@ -79,9 +75,9 @@ def update_config(dns_name, dns_ip, dns_id, dns_proxy):
         'comment': 'Domain verification record',
         'content': dns_ip,
         'name': dns_name,
-        'proxied': c_proxy,
+        'proxied': cf_proxy,
         'ttl': 1,
-        'type': 'AAAA',
+        'type': dns_type,
     }
 
     response = requests.patch(
@@ -89,9 +85,6 @@ def update_config(dns_name, dns_ip, dns_id, dns_proxy):
         headers=headers,
         json=json_data,
     )
-
-    print(response.content)
-
 
 
 if __name__ == "__main__":
