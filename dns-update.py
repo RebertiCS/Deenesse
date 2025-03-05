@@ -3,6 +3,7 @@ import json
 import os
 
 from dotenv import load_dotenv
+from datetime import datetime
 
 load_dotenv()
 
@@ -16,7 +17,7 @@ def main():
     ipv4 = str(requests.get("https://icanhazip.com").content).replace("b\'", '').replace("\\n\'", '')
     dns_list = os.getenv("CF_DNS").split(",")
 
-    print("# Deenesse v1.0", "\n## Updated IPV6: ", ipv6)
+    print("\n# Deenesse v1.0", datetime.now().strftime("%d/%m/%Y - %H:%M"), "\n## Updated IPV6: ", ipv6)
 
     if ipv4 != ipv6:
         print("## Updated IPV4: ", ipv4)
