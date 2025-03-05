@@ -6,51 +6,78 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+global ipv6
+global ipv4
 
-def main()
 
-    request_data = get_config()
+def main():
 
-    print(request_data)
+    ipv6 = str(requests.get("https://ipv6.icanhazip.com").content).replace("b\'", '')
+    ipv6 = ipv6.replace("\\n\'", '')
+
+    ipv4 = str(requests.get("https://icanhazip.com").content).replace("b\'", '')
+    ipv4 = ipv4.replace("\\n\'", '')
+
+    print("# MorpheusDNS v0.1")
+    print("## Updated IPV6: ", ipv6)
+
+    if ipv4 != ipv6:
+        print("## Updated IPV4: ", ipv4)
+
+    info = get_config()
 
 
 def get_config():
-    headers = {
-        'X-Auth-Email': os.environ.get('CF_EMAIL'),
-        'X-Auth-Key': os.environ.get('CF_KEY'),
-    }
-
-    response = requests.get(
-        'https://api.cloudflare.com/client/v4/zones/' + os.environ.get('CF_ZONE') + '/dns_records',
-        headers=headers,
-    )
-
-    print("Data response:\n", response)
-    return response
-
-
-def update_config():
 
     headers = {
         'Content-Type': 'application/json',
-        'X-Auth-Email': os.getenv.get('CF_EMAIL', ''),
-        'X-Auth-Key': os.getenv.get('CF_KEY', ''),
+        'Authorization': 'Bearer ' + os.getenv('CF_KEY'),
+    }
+
+    response = requests.get(
+        'https://api.cloudflare.com/client/v4/zones/' + os.getenv("CF_ZONE") + '/dns_records',
+        headers=headers,
+    )
+
+    request_data = json.loads(str(response.content).replace("b\'", "").replace("\'",""))
+
+    print(request_data)
+
+    dns_config = "{ "
+
+    print("\n# DNS Configuration\n")
+    for data in request_data["result"]:
+        print(" - Name: ", data["name"], "\n\t+ Id:\t", data["id"], "\n\t+ Type:\t", data["type"], "\n\t+ IP:\t", data["content"], "\n")
+        dns_config = dns_config + '{\'name\': \'' + data["name"] + '\',\'id\':\'' + data["id"] + '\' },'
+
+    dns_config = dns_config + '}'
+
+    print(dns_config)
+
+    return request_data
+
+
+def update_config(dns_name, ip):
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + os.getenv('CF_KEY'),
     }
 
     json_data = {
         'comment': 'Domain verification record',
-        'content': '198.51.100.4',
-        'name': 'example.com',
-        'proxied': True,
+        'content': ip,
+        'name': dns_name,
+        'proxied': False,
         'settings': {
-            'ipv4_only': True,
+            'ipv4_only': False,
             'ipv6_only': True,
         },
         'tags': [
             'owner:dns-team',
         ],
         'ttl': 3600,
-        'type': 'A',
+        'type': 'AAAA',
     }
 
     response = requests.patch(
