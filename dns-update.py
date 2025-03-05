@@ -1,6 +1,6 @@
-import os
 import requests
 import json
+import os
 
 from dotenv import load_dotenv
 
@@ -18,7 +18,7 @@ def main():
     ipv4 = str(requests.get("https://icanhazip.com").content).replace("b\'", '')
     ipv4 = ipv4.replace("\\n\'", '')
 
-    print("# MorpheusDNS v0.1")
+    print("# MorpheusDNS v1.0")
     print("## Updated IPV6: ", ipv6)
 
     if ipv4 != ipv6:
@@ -26,16 +26,19 @@ def main():
 
     req_data = get_config()
 
+    dns_list = os.getenv("CF_DNS").split(",")
+
     print("# DNS Updates\n")
     for dns in req_data["result"]:
-        if os.getenv("CF_DNS") == dns["name"]:
-            if dns["type"] == "AAAA":
-                print(" - IPv6:", os.getenv("CF_DNS"), "to", ipv6)
-                update_config(dns["name"], ipv6, dns["id"])
+        for dns_obj in dns_list:
+            if dns_obj == dns["name"]:
+                if dns["type"] == "AAAA":
+                    print(" - IPv6:", dns_obj, "to", ipv6)
+                    update_config(dns["name"], ipv6, dns["id"], os.getenv("CF_PROXY"))
 
-            elif dns["type"] == "A":
-                print(" - IPv4:", os.getenv("CF_DNS"), "to", ipv4)
-                #update_config(dns["name"], ipv4)
+                elif dns["type"] == "A":
+                    print(" - IPv4:", dns_obj, "to", ipv4)
+                    update_config(dns["name"], ipv4, os.getenv("CF_PROXY"))
 
 
 def get_config():
@@ -60,7 +63,12 @@ def get_config():
     return request_data
 
 
-def update_config(dns_name, dns_ip, dns_id):
+def update_config(dns_name, dns_ip, dns_id, dns_proxy):
+
+    if dns_proxy == "False":
+        c_proxy = False
+    else:
+        c_proxy = True
 
     headers = {
         'Content-Type': 'application/json',
@@ -71,7 +79,7 @@ def update_config(dns_name, dns_ip, dns_id):
         'comment': 'Domain verification record',
         'content': dns_ip,
         'name': dns_name,
-        'proxied': False,
+        'proxied': c_proxy,
         'ttl': 1,
         'type': 'AAAA',
     }
