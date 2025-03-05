@@ -1,20 +1,19 @@
-import requests
+"""Deenesse DNS Updater."""
 import json
 import os
 
-from dotenv import load_dotenv
 from datetime import datetime
+from dotenv import load_dotenv
+
+import requests
 
 load_dotenv()
 
-global ipv6
-global ipv4
-
-
 def main():
+    """DNS updater."""
 
-    ipv6 = str(requests.get("https://ipv6.icanhazip.com").content).replace("b\'", '').replace("\\n\'", '')
-    ipv4 = str(requests.get("https://icanhazip.com").content).replace("b\'", '').replace("\\n\'", '')
+    ipv6 = str(requests.get("https://ipv6.icanhazip.com", timeout=10).content).replace("b\'", '').replace("\\n\'", '')
+    ipv4 = str(requests.get("https://icanhazip.com", timeout=10).content).replace("b\'", '').replace("\\n\'", '')
     dns_list = os.getenv("CF_DNS").split(",")
 
     print("\n# Deenesse v1.0", datetime.now().strftime("%d/%m/%Y - %H:%M"), "\n## Updated IPV6: ", ipv6)
@@ -34,6 +33,7 @@ def main():
 
 
 def get_config():
+    """Get DNS Config from Cloudflare."""
 
     headers = {
         'Content-Type': 'application/json',
@@ -41,7 +41,8 @@ def get_config():
     }
 
     response = requests.get(
-        'https://api.cloudflare.com/client/v4/zones/' + os.getenv("CF_ZONE") + '/dns_records',
+        'https://api.cloudflare.com/client/v4/zones/' + os.getenv("CF_ZONE") + '/dns_records', 
+        timeout=10,
         headers=headers,
     )
 
@@ -56,6 +57,7 @@ def get_config():
 
 
 def update_config(dns_name, dns_ip, dns_id, dns_type):
+    """Update DNS on Cloudflare servers."""
 
     cf_proxy = True
 
@@ -76,8 +78,9 @@ def update_config(dns_name, dns_ip, dns_id, dns_type):
         'type': dns_type,
     }
 
-    response = requests.patch(
+    requests.patch(
         'https://api.cloudflare.com/client/v4/zones/' + os.getenv('CF_ZONE') + '/dns_records/' + dns_id,
+        timeout=10,
         headers=headers,
         json=json_data,
     )
