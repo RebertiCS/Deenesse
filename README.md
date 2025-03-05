@@ -1,4 +1,4 @@
-# MorpheusDNS v1.0
+# Deenesse v1.0
 Update DNS name to ipv6 or ipv4 on domain name provider
 
 ### Usage

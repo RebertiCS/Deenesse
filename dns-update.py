@@ -16,7 +16,7 @@ def main():
     ipv4 = str(requests.get("https://icanhazip.com").content).replace("b\'", '').replace("\\n\'", '')
     dns_list = os.getenv("CF_DNS").split(",")
 
-    print("# MorpheusDNS v1.0", "\n## Updated IPV6: ", ipv6)
+    print("# Deenesse v1.0", "\n## Updated IPV6: ", ipv6)
 
     if ipv4 != ipv6:
         print("## Updated IPV4: ", ipv4)
