@@ -27,9 +27,18 @@ def main():
     for dns in req_data["result"]:
         for dns_name in dns_list:
             if dns_name == dns["name"]:
+                if dns["type"] == "AAAA" and dns["content"] != ipv6:
+                    update_config(dns["name"], ipv6, dns["id"], dns["type"])
+                    print("Name:", dns_name, "\nType:", dns["type"], "\n - Old:",  dns["content"], "\n - New:", ipv6)
+                elif dns["type"] == "AAAA":
+                    print("Name:", dns_name, "\nType:", dns["type"], '\n - IP', ipv6, "\n - Same IPV6, won't update")
 
-                print("Name:", dns_name, "\nType:", dns["type"], "\n - Old:",  dns["content"], "\n - New:", ipv6)
-                update_config(dns["name"], ipv4, dns["id"], dns["type"])
+                if dns["type"] == "A" and dns["content"] != ipv4:
+                    update_config(dns["name"], ipv4, dns["id"], dns["type"])
+                    print("Name:", dns_name, "\nType:", dns["type"], "\n - Old:",  dns["content"], "\n - New:", ipv4)
+                elif dns["type"] == "A":
+                    print("Name:", dns_name, "\nType:", dns["type"], '\n - IP', ipv4, "\n - Same IPV4, won't update")
+
 
 
 def get_config():
