@@ -16,10 +16,10 @@ CF_URL = "https://api.cloudflare.com/client/v4/zones/"
 def main():
     """DNS updater."""
     ipv6_req = requests.get("https://ipv6.icanhazip.com", timeout=10).content
-    ipv6 = SanitizeGet(ipv6_req)
+    ipv6 = sanitize_get(ipv6_req)
 
     ipv4_req = requests.get("https://icanhazip.com", timeout=10).content
-    ipv4 = SanitizeGet(ipv4_req)
+    ipv4 = sanitize_get(ipv4_req)
 
     dns_list = os.getenv("CF_DNS").split(",")
 
@@ -29,7 +29,7 @@ def main():
     if ipv4 != ipv6:
         print("## IPV4: ", ipv4)
 
-    req_data = GetConfig()
+    req_data = get_config()
 
     print("# DNS Updates\n")
     for dns in req_data["result"]:
@@ -39,7 +39,7 @@ def main():
                 if dns["type"] == "AAAA":
                     # Update IPv6 if it has changed
                     if dns["content"] != ipv6:
-                        UpdateConfig(dns["name"], ipv6, dns["id"], dns["type"])
+                        update_config(dns["name"], ipv6, dns["id"], dns["type"])
 
                         print("Name:", dns_name,
                               "\nType:", dns["type"],
@@ -56,7 +56,7 @@ def main():
                 else:
                     # Update IPv4 if it has changed
                     if dns["content"] != ipv4:
-                        UpdateConfig(dns["name"], ipv4, dns["id"], dns["type"])
+                        update_config(dns["name"], ipv4, dns["id"], dns["type"])
 
                         print("Name:", dns_name,
                               "\nType:", dns["type"],
@@ -71,7 +71,7 @@ def main():
                               "\n - Same IPv4, won't update")
 
 
-def GetConfig():
+def get_config():
     """Get DNS Config from Cloudflare."""
     headers = {
         'Content-Type': 'application/json',
@@ -86,7 +86,7 @@ def GetConfig():
         headers=headers,
     )
 
-    request_data = json.loads(SanitizeGet(response.content))
+    request_data = json.loads(sanitize_get(response.content))
 
     print("\n# DNS Configuration\n")
 
@@ -101,7 +101,7 @@ def GetConfig():
     return request_data
 
 
-def UpdateConfig(dns_name, dns_ip, dns_id, dns_type):
+def update_config(dns_name, dns_ip, dns_id, dns_type):
     """Update DNS on Cloudflare servers."""
 
     cf_proxy = True
@@ -133,10 +133,10 @@ def UpdateConfig(dns_name, dns_ip, dns_id, dns_type):
     )
 
 
-def SanitizeGet(Data):
+def sanitize_get(get_data):
     """Remove unneded characters from get requests."""
 
-    return str(Data).replace("b\'", "").replace("\'", "")
+    return str(get_data).replace("b\'", "").replace("\'", "")
 
 
 if __name__ == "__main__":
