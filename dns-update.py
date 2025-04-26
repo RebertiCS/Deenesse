@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 """Deenesse DNS Updater."""
 import json
 import os
@@ -9,63 +10,98 @@ import requests
 
 load_dotenv()
 
+CF_URL = "https://api.cloudflare.com/client/v4/zones/"
+
+
 def main():
     """DNS updater."""
+    ipv6_req = requests.get("https://ipv6.icanhazip.com", timeout=10).content
+    ipv6 = SanitizeGet(ipv6_req)
 
-    ipv6 = str(requests.get("https://ipv6.icanhazip.com", timeout=10).content).replace("b\'", '').replace("\\n\'", '')
-    ipv4 = str(requests.get("https://icanhazip.com", timeout=10).content).replace("b\'", '').replace("\\n\'", '')
+    ipv4_req = requests.get("https://icanhazip.com", timeout=10).content
+    ipv4 = SanitizeGet(ipv4_req)
+
     dns_list = os.getenv("CF_DNS").split(",")
 
-    print("\n# Deenesse v1.0", datetime.now().strftime("%d/%m/%Y - %H:%M"), "\n## Updated IPV6: ", ipv6)
+    print("\n# Deenesse v1.0", datetime.now().strftime("%d/%m/%Y - %H:%M"),
+          "\n## IPV6: ", ipv6)
 
     if ipv4 != ipv6:
-        print("## Updated IPV4: ", ipv4)
+        print("## IPV4: ", ipv4)
 
-    req_data = get_config()
+    req_data = GetConfig()
 
     print("# DNS Updates\n")
     for dns in req_data["result"]:
         for dns_name in dns_list:
             if dns_name == dns["name"]:
-                if dns["type"] == "AAAA" and dns["content"] != ipv6:
-                    update_config(dns["name"], ipv6, dns["id"], dns["type"])
-                    print("Name:", dns_name, "\nType:", dns["type"], "\n - Old:",  dns["content"], "\n - New:", ipv6)
-                elif dns["type"] == "AAAA":
-                    print("Name:", dns_name, "\nType:", dns["type"], '\n - IP', ipv6, "\n - Same IPV6, won't update")
 
-                if dns["type"] == "A" and dns["content"] != ipv4:
-                    update_config(dns["name"], ipv4, dns["id"], dns["type"])
-                    print("Name:", dns_name, "\nType:", dns["type"], "\n - Old:",  dns["content"], "\n - New:", ipv4)
-                elif dns["type"] == "A":
-                    print("Name:", dns_name, "\nType:", dns["type"], '\n - IP', ipv4, "\n - Same IPV4, won't update")
+                if dns["type"] == "AAAA":
+                    # Update IPv6 if it has changed
+                    if dns["content"] != ipv6:
+                        UpdateConfig(dns["name"], ipv6, dns["id"], dns["type"])
+
+                        print("Name:", dns_name,
+                              "\nType:", dns["type"],
+                              "\n - Old:",  dns["content"],
+                              "\n - New:", ipv6)
+
+                    # Logs when the IPv6 dind't change
+                    else:
+                        print("Name:", dns_name,
+                              "\nType:", dns["type"],
+                              "\n - IP", ipv6,
+                              "\n - Same IPv6, won't update")
+
+                else:
+                    # Update IPv4 if it has changed
+                    if dns["content"] != ipv4:
+                        UpdateConfig(dns["name"], ipv4, dns["id"], dns["type"])
+
+                        print("Name:", dns_name,
+                              "\nType:", dns["type"],
+                              "\n - Old:",  dns["content"],
+                              "\n - New:", ipv4)
+
+                    # Logs when the IPv4 dind't change
+                    else:
+                        print("Name:", dns_name,
+                              "\nType:", dns["type"],
+                              "\n - IP", ipv4,
+                              "\n - Same IPv4, won't update")
 
 
-
-def get_config():
+def GetConfig():
     """Get DNS Config from Cloudflare."""
-
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + os.getenv('CF_KEY'),
     }
 
+    api_url = CF_URL + os.getenv("CF_ZONE") + '/dns_records'
+
     response = requests.get(
-        'https://api.cloudflare.com/client/v4/zones/' + os.getenv("CF_ZONE") + '/dns_records', 
+        api_url,
         timeout=10,
         headers=headers,
     )
 
-    request_data = json.loads(str(response.content).replace("b\'", "").replace("\'",""))
+    request_data = json.loads(SanitizeGet(response.content))
 
     print("\n# DNS Configuration\n")
 
+    # Show information about DNS Server
     for data in request_data["result"]:
-        print(" - Name: ", data["name"], "\n\t+ Id:\t", data["id"], "\n\t+ Type:\t", data["type"], "\n\t+ IP:\t", data["content"], "\n")
+        print(" - Name: ", data["name"],
+              "\n\t+ Id:\t", data["id"],
+              "\n\t+ Type:\t", data["type"],
+              "\n\t+ IP:\t", data["content"],
+              "\n")
 
     return request_data
 
 
-def update_config(dns_name, dns_ip, dns_id, dns_type):
+def UpdateConfig(dns_name, dns_ip, dns_id, dns_type):
     """Update DNS on Cloudflare servers."""
 
     cf_proxy = True
@@ -87,12 +123,20 @@ def update_config(dns_name, dns_ip, dns_id, dns_type):
         'type': dns_type,
     }
 
+    api_url = CF_URL + os.getenv('CF_ZONE') + '/dns_records/' + dns_id
+
     requests.patch(
-        'https://api.cloudflare.com/client/v4/zones/' + os.getenv('CF_ZONE') + '/dns_records/' + dns_id,
+        api_url,
         timeout=10,
         headers=headers,
         json=json_data,
     )
+
+
+def SanitizeGet(Data):
+    """Remove unneded characters from get requests."""
+
+    return str(Data).replace("b\'", "").replace("\'", "")
 
 
 if __name__ == "__main__":
