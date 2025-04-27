@@ -136,7 +136,7 @@ def update_config(dns_name, dns_ip, dns_id, dns_type):
 def sanitize_get(get_data):
     """Remove unneded characters from get requests."""
 
-    return str(get_data).replace("b\'", "").replace("\'", "")
+    return str(get_data).replace("b\'", "").replace("\'", "").replace("\\n'", "")
 
 
 if __name__ == "__main__":
