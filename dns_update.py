@@ -16,10 +16,10 @@ CF_URL = "https://api.cloudflare.com/client/v4/zones/"
 def main():
     """DNS updater."""
     ipv6_req = requests.get("https://ipv6.icanhazip.com", timeout=10).content
-    ipv6 = sanitize_get(ipv6_req)
+    ipv6 = str(sanitize_get(ipv6_req)).replace("\\n", "")
 
     ipv4_req = requests.get("https://icanhazip.com", timeout=10).content
-    ipv4 = sanitize_get(ipv4_req)
+    ipv4 = str(sanitize_get(ipv4_req)).replace("\\n", "")
 
     dns_list = os.getenv("CF_DNS").split(",")
 
@@ -136,7 +136,7 @@ def update_config(dns_name, dns_ip, dns_id, dns_type):
 def sanitize_get(get_data):
     """Remove unneded characters from get requests."""
 
-    return str(get_data).replace("b\'", "").replace("\'", "").replace("\\n'", "")
+    return str(get_data).replace("b\'", "").replace("\'", "")
 
 
 if __name__ == "__main__":
