@@ -32,3 +32,9 @@ pip install -r requirements.txt
 ```bash
 python dns-update.py
 ```
+
+### Crontab Exemple:
+Run `crontab -e` to edit crontab.
+```bash
+0 * * * * /usr/bin/python3 <Deenesse Folder>/dns_update.py
+```
