@@ -73,17 +73,12 @@ def get_config():
 def update_config(dns_name, dns_ip, dns_id):
     """Update DNS on Cloudflare servers."""
     try:
-        cf_proxy = os.getenv("CF_PROXY")
+        cf_proxy = os.getenv("CF_PROXY") in "True"
         cf_key = os.getenv("CF_KEY")
         cf_zone = os.getenv("CF_ZONE")
     except KeyError:
         print(f"[ {datetime.now()} ] Wrong configuration")
         return
-
-    if cf_proxy == "True":
-        cf_proxy = True
-    else:
-        cf_proxy = False
 
     headers = {
         "Content-Type": "application/json",
