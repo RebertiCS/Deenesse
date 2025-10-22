@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 """Deenesse DNS Updater."""
-import json
 import os
+import sys
+import json
 
 from datetime import datetime
 from dotenv import load_dotenv
@@ -15,14 +16,17 @@ CF_URL = "https://api.cloudflare.com/client/v4/zones/"
 
 def main():
     """DNS updater."""
+    if len(sys.argv) > 1:
+        load_dotenv(sys.argv[1])
+    else:
+        load_dotenv()
+
     ipv6 = get_ipv6()
     req_data = get_config()
 
     if req_data is None:
         print(f"[ {datetime.now()} ] Failed to retrieve configuration")
         return
-
-    print(f"[ {datetime.now()} ] DNS Updates:")
 
     try:
         dns_list = os.getenv("CF_DNS").split(",")
