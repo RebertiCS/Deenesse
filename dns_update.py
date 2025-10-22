@@ -47,7 +47,7 @@ def get_config():
         cf_zone = os.getenv("CF_ZONE")
     except KeyError:
         print(f"[ {datetime.now()} ] Wrong configuration")
-        return
+        return None
 
     headers = {
         "Content-Type": "application/json",
