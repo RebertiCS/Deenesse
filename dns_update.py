@@ -15,38 +15,7 @@ CF_URL = "https://api.cloudflare.com/client/v4/zones/"
 
 def main():
     """DNS updater."""
-    print(
-        "# Deenesse v1.1",
-        datetime.now().strftime("%d/%m/%Y - %H:%M"),
-    )
-
-    try:
-        ipv6 = requests.get("https://ipv6.icanhazip.com", timeout=60).text
-        print(f"[ {datetime.now()} ] IPV6: {ipv6}")
-    except requests.exceptions.Timeout:
-        print(f"[ {datetime.now()} ] Connection timeout while getting IPv6")
-
-    try:
-        ipv4 = requests.get("https://icanhazip.com", timeout=60).text
-        if len(ipv4) > 15:
-            print(f"[ {datetime.now()} ] Coudn't get IPv4")
-            ipv4 = None
-
-        else:
-            print(f"[ {datetime.now()} ] IPv4: {ipv4}")
-
-    except requests.exceptions.Timeout:
-        print(f"[ {datetime.now()} ] Connection timeout while getting IPv4")
-
-    try:
-        dns_list = os.getenv("CF_DNS").split(",")
-    except KeyError:
-        print(f"[ {datetime.now()} ] Wrong configuration CF_DNS")
-        return
-
-    if ipv4:
-        print("## IPV4: ", ipv4)
-
+    ipv6 = get_ipv6()
     req_data = get_config()
 
     if req_data is None:
@@ -55,57 +24,37 @@ def main():
 
     print(f"[ {datetime.now()} ] DNS Updates:")
 
-    for dns in req_data["result"]:
-        for dns_name in dns_list:
-            if dns_name == dns["name"]:
-                if dns["type"] == "AAAA" and ipv6 is not None:
-                    # Update IPv6 if it has changed
-                    if dns["content"] != ipv6:
-                        update_config(dns["name"], ipv6, dns["id"], dns["type"])
+    try:
+        dns_list = os.getenv("CF_DNS").split(",")
+    except KeyError:
+        print(f"[ {datetime.now()} ] Wrong configuration CF_DNS")
+        return
 
-                        print(
-                            f"Name:{dns_name} \n Type: {dns['type']}",
-                            f"\n - Old: {dns['content']} \n - New: {ipv6}",
-                        )
+    update_list = [dns for dns in req_data if dns["name"] in dns_list]
 
-                    else:
-                        print(
-                            f"Name: {dns_name} \nType: {dns['type']}",
-                            f"\n - IP {ipv6} \n - Same IPv6, won't update",
-                        )
-                elif ipv4 is not None:
-                    # Update IPv4 if it has changed
-                    if dns["content"] != ipv4:
-                        update_config(dns["name"], ipv4, dns["id"], dns["type"])
-
-                        print(
-                            f"Name: {dns_name} \nType: {dns['type']} ",
-                            f"\n - Old: {dns['content']} \n - New: {ipv4}",
-                        )
-
-                    else:
-                        print(
-                            f"Name: {dns_name} \nType: {dns['type']} ",
-                            f"\n - IP {ipv4} \n - Same IPv4, won't update",
-                        )
+    for dns in update_list:
+        if dns["content"] != ipv6:
+            update_config(dns["name"], ipv6, dns["id"])
+            print(f"[ {datetime.now()} ] Updated: {dns['name']}")
+        else:
+            print(f"[ {datetime.now()} ] No change: {dns['name']}")
 
 
 def get_config():
     """Get DNS Config from Cloudflare."""
     try:
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + os.getenv("CF_KEY"),
-        }
+        cf_key = os.getenv("CF_KEY")
+        cf_zone = os.getenv("CF_ZONE")
     except KeyError:
-        print(f"[ {datetime.now()} ] Wrong configuration CF_KEY")
-        return None
+        print(f"[ {datetime.now()} ] Wrong configuration")
+        return
 
-    try:
-        api_url = CF_URL + os.getenv("CF_ZONE") + "/dns_records"
-    except KeyError:
-        print(f"[ {datetime.now()} ] Wrong configuration CF_ZONE")
-        return None
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {cf_key}",
+    }
+
+    api_url = f"{CF_URL}{cf_zone}/dns_records"
 
     try:
         response = requests.get(
@@ -118,26 +67,17 @@ def get_config():
 
         return None
 
-    request_data = json.loads(sanitize_get(response.content))
-
-    print(f"[ {datetime.now()} ] DNS Configuration")
-
-    # Show information about DNS Server
-    for data in request_data["result"]:
-        print(
-            f" - Name: {data['name']} \n\t+ Id:\t {data['id']}",
-            f"\n\t+ Type:\t {data['type']} \n\t+ IP:\t {data['content']}",
-        )
-
-    return request_data
+    return json.loads(sanitize_get(response.content))["result"]
 
 
-def update_config(dns_name, dns_ip, dns_id, dns_type):
+def update_config(dns_name, dns_ip, dns_id):
     """Update DNS on Cloudflare servers."""
     try:
         cf_proxy = os.getenv("CF_PROXY")
+        cf_key = os.getenv("CF_KEY")
+        cf_zone = os.getenv("CF_ZONE")
     except KeyError:
-        print(f"[ {datetime.now()} ] Wrong configuration CF_PROXY")
+        print(f"[ {datetime.now()} ] Wrong configuration")
         return
 
     if cf_proxy == "True":
@@ -145,15 +85,10 @@ def update_config(dns_name, dns_ip, dns_id, dns_type):
     else:
         cf_proxy = False
 
-    try:
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + os.getenv("CF_KEY"),
-        }
-    except KeyError:
-        print(f"[ {datetime.now()} ] Wrong configuration CF_KEY")
-
-        return
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {cf_key}",
+    }
 
     json_data = {
         "comment": "Domain verification record",
@@ -161,15 +96,10 @@ def update_config(dns_name, dns_ip, dns_id, dns_type):
         "name": dns_name,
         "proxied": cf_proxy,
         "ttl": 1,
-        "type": dns_type,
+        "type": "AAAA",
     }
 
-    try:
-        api_url = CF_URL + os.getenv("CF_ZONE") + "/dns_records/" + dns_id
-    except KeyError:
-        print(f"[ {datetime.now()} ] Wrong configuration CF_ZONE")
-
-        return
+    api_url = f"{CF_URL}{cf_zone}/dns_records/{dns_id}"
 
     requests.patch(
         api_url,
@@ -177,6 +107,19 @@ def update_config(dns_name, dns_ip, dns_id, dns_type):
         headers=headers,
         json=json_data,
     )
+
+
+def get_ipv6():
+    """Get ipv6 from externel server."""
+    ipv6 = None
+
+    try:
+        ipv6 = requests.get("https://ipv6.icanhazip.com", timeout=60).text
+        print(f"[ {datetime.now()} ] IPv6: {ipv6}")
+    except requests.exceptions.Timeout:
+        print(f"[ {datetime.now()} ] Connection timeout while getting IPv6")
+
+    return ipv6
 
 
 def sanitize_get(get_data):
