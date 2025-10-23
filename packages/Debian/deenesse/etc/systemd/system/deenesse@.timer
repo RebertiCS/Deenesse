@@ -2,7 +2,7 @@
 Description=Hourly Deenesse update
 
 [Timer]
-Unit=deenesse.service
+Unit=deenesse@%i.service
 OnCalendar=hourly
 AccuracySec=12h
 Persistent=true

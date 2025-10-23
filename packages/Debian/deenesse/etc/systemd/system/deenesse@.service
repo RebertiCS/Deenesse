@@ -1,8 +1,12 @@
 [Unit]
 Description=Update DNS on Cloudflare
+After=network-online.target
+StartLimitBurst=5
 
 [Service]
 Type=oneshot
+Restart=on-failure
+RestartSec=500ms
 ExecStart=/usr/bin/deenesse /etc/deenesse/%I
 
 [Install]
