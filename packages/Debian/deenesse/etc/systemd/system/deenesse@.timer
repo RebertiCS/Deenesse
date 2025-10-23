@@ -1,0 +1,11 @@
+[Unit]
+Description=Hourly Deenesse update
+
+[Timer]
+Unit=deenesse.service
+OnCalendar=hourly
+AccuracySec=12h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,7 @@
+Package: Deenesse
+Version: 1.0
+Architecture: amd64
+Depends: python3-requests, python3-dotenv
+Maintainer: Reberti Carvalho Soares <rebertics@gmail.com>
+Description: Cloudflare DNS name updater
+Homepage: https://github.com/RebertiCS/Deenesse

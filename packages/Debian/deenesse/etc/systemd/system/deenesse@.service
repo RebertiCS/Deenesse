@@ -1,0 +1,9 @@
+[Unit]
+Description=Update DNS on Cloudflare
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/deenesse /etc/deenesse/%I
+
+[Install]
+WantedBy=network.target
