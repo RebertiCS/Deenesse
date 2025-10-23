@@ -6,4 +6,4 @@ Type=oneshot
 ExecStart=/usr/bin/deenesse /etc/deenesse/%I
 
 [Install]
-WantedBy=network.target
+WantedBy=mult-user.target
