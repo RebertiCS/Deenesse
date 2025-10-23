@@ -36,7 +36,7 @@ def main():
     update_list = [dns for dns in req_data if dns["name"] in dns_list]
 
     for dns in update_list:
-        if dns["content"] != ipv6:
+        if dns["content"] not in ipv6:
             update_config(dns["name"], ipv6, dns["id"])
             print(f"Updated: {dns['name']}")
         else:
@@ -113,7 +113,7 @@ def get_ipv6():
 
     try:
         ipv6 = requests.get("https://ipv6.icanhazip.com", timeout=60).text
-        print("IPv6: {ipv6}")
+        print("Successfully got IPv6")
     except requests.exceptions.Timeout:
         print("Connection timeout while getting IPv6")
 
