@@ -6,6 +6,9 @@ Update DNS name using cloudflare API
 Create `.env` file containing:
 
 ```bash
+# Network device to get ipv6
+NETWORK_DEVICE="enp0s0"
+
 # Cloudflare API Token
 CF_KEY="KEY"
 

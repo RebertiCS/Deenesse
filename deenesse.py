@@ -1,14 +1,14 @@
 #!/usr/bin/python3
 """Deenesse DNS Updater."""
 import os
+import re
 import sys
 import json
+import subprocess
+import requests
 
 from dotenv import load_dotenv
 
-import requests
-
-load_dotenv()
 
 CF_URL = "https://api.cloudflare.com/client/v4/zones/"
 
@@ -109,10 +109,20 @@ def update_config(dns_name, dns_ip, dns_id):
 
 def get_ipv6():
     """Get ipv6 from externel server."""
+    pattern = r'(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|::(?:[0-9a-fA-F]{1,4}:){0,6}[0-9a-fA-F]{1,4}|[0-9a-fA-F]{1,4}::(?:[0-9a-fA-F]{1,4}:){0,5}[0-9a-fA-F]{1,4}'
     ipv6 = None
+    device = None
 
     try:
-        ipv6 = requests.get("https://ipv6.icanhazip.com", timeout=60).text
+        device = os.getenv("NETWORK_DEVICE")
+    except KeyError:
+        print("Missing device from configuration")
+        return
+
+    try:
+        output = subprocess.run(["ip", "-6", "addr", "show", device, "scope", "global"], capture_output=True, text=True).stdout
+        ipv6 = re.findall(pattern, output)[0]
+
         print("Successfully got IPv6")
     except requests.exceptions.Timeout:
         print("Connection timeout while getting IPv6")
