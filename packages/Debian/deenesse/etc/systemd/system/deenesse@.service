@@ -11,4 +11,4 @@ RestartSec=500ms
 ExecStart=/usr/bin/deenesse /etc/deenesse/%I
 
 [Install]
-WantedBy=mult-user.target
+WantedBy=multi-user.target
