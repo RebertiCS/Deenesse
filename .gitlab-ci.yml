@@ -29,6 +29,7 @@ publish:
     name: debian:trixie-backports
     pull_policy: if-not-present
   before_script:
+    - apt update
     - apt install curl
   script:
     - |
