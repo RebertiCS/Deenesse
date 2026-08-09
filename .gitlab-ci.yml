@@ -38,7 +38,7 @@ publish-latest:
       curl --fail-with-body \
         --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
         --upload-file ${PKG_TARGET}.deb \
-        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/latest/${PKG_TARGET}-${CI_COMMIT_SHA}.deb"
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/latest/${PKG_TARGET}-${CI_COMMIT_SHORT_SHA}.deb"
 
 publish:
   stage: publish
