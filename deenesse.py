@@ -21,17 +21,17 @@ def main():
         load_dotenv()
 
     ipv6 = get_ipv6()
-    req_data = get_config()
-
-    if req_data is None:
-        print("Failed to retrieve configuration")
-        return
+    try:
+        req_data = get_config()
+    except Exception as e:
+        print(f"Failed to retrieve configuration: \n{e}")
+        exit(2)
 
     try:
         dns_list = os.getenv("CF_DNS").split(",")
     except KeyError:
         print("Wrong configuration CF_DNS")
-        return
+        exit(2)
 
     update_list = [dns for dns in req_data if dns["name"] in dns_list]
 
@@ -70,7 +70,7 @@ def get_config():
 
         return None
 
-    return json.loads(sanitize_get(response.content))["result"]
+    return json.loads(response.content)["result"]
 
 
 def update_config(dns_name, dns_ip, dns_id):
@@ -128,11 +128,6 @@ def get_ipv6():
         print("Connection timeout while getting IPv6")
 
     return ipv6
-
-
-def sanitize_get(get_data):
-    """Remove unneded characters from get requests."""
-    return str(get_data).replace("b'", "").replace("'", "")
 
 
 if __name__ == "__main__":
