@@ -11,8 +11,6 @@ debian:
   artifacts:
     when: always
     paths: [ deenesse.deb ]
-  # before_script:
-  #   - apk add curl
   script:
     - mkdir -p packages/Debian/deenesse/usr/bin
     - mv deenesse.py packages/Debian/deenesse/usr/bin/deenesse
