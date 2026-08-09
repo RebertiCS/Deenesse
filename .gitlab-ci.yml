@@ -1,0 +1,22 @@
+stages:
+  - build-package
+
+debian:
+  stage: build-package
+  needs: []
+  image:
+    name: debian:trixie-backports
+    pull_policy: if-not-present
+  artifacts:
+    when: always
+    paths: [ deenesse.deb ]
+  # before_script:
+  #   - apk add curl
+  script:
+    - mkdir -p packages/Debian/deenesse/usr/bin
+    - mv deenesse.py packages/Debian/deenesse/usr/bin/deenesse
+    - echo "Setting Permissions"
+    - chmod +x packages/Debian/deenesse/usr/bin/deenesse
+    - chmod 755 packages/Debian/deenesse/DEBIAN -R
+    - echo "Creating Deb Package"
+    - dpkg-deb --root-owner-group --build packages/Debian/deenesse deenesse.deb
