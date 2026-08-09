@@ -1,5 +1,6 @@
 stages:
   - build-package
+  - publish
 
 debian:
   stage: build-package
@@ -24,7 +25,7 @@ debian:
 publish:
   stage: publish
   needs:
-    - job: build
+    - job: debian
       artifacts: true
   script:
     - |
