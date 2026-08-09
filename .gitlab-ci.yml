@@ -28,6 +28,8 @@ publish:
   image:
     name: debian:trixie-backports
     pull_policy: if-not-present
+  before_script:
+    - apt install curl
   script:
     - |
       curl --fail-with-body \
