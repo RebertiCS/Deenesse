@@ -1,3 +1,5 @@
+variables:
+  PKG_TARGET: deenesse
 stages:
   - build-package
   - publish
@@ -12,13 +14,13 @@ debian:
     when: always
     paths: [ deenesse.deb ]
   script:
-    - mkdir -p packages/Debian/deenesse/usr/bin
-    - mv deenesse.py packages/Debian/deenesse/usr/bin/deenesse
+    - mkdir -p packages/Debian/${PKG_TARGET}/usr/bin
+    - mv ${PKG_TARGET}.py packages/Debian/${PKG_TARGET}/usr/bin/${PKG_TARGET}
     - echo "Setting Permissions"
-    - chmod +x packages/Debian/deenesse/usr/bin/deenesse
-    - chmod 755 packages/Debian/deenesse/DEBIAN -R
+    - chmod +x packages/Debian/${PKG_TARGET}/usr/bin/${PKG_TARGET}
+    - chmod 755 packages/Debian/${PKG_TARGET}/DEBIAN -R
     - echo "Creating Deb Package"
-    - dpkg-deb --root-owner-group --build packages/Debian/deenesse deenesse.deb
+    - dpkg-deb --root-owner-group --build packages/Debian/${PKG_TARGET} ${PKG_TARGET}.deb
 
 publish:
   stage: publish
@@ -35,7 +37,7 @@ publish:
     - |
       curl --fail-with-body \
         --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-        --upload-file deenesse.deb \
-        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/deenesse/${CI_COMMIT_TAG}/deenesse.deb"
+        --upload-file ${PKG_TARGET}.deb \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/Debian/${CI_COMMIT_TAG}/${PKG_TARGET}-${CI_COMMIT_TAG}.deb"
   rules:
     - if: $CI_COMMIT_TAG
