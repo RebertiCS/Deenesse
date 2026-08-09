@@ -30,7 +30,7 @@ publish:
     pull_policy: if-not-present
   before_script:
     - apt update
-    - apt install curl
+    - apt install curl -y
   script:
     - |
       curl --fail-with-body \
