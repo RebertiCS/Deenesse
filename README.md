@@ -1,4 +1,7 @@
-# Deenesse v1.0
+**Moved to** [Deenesse](https://gitlab.voidcloud.com.br/RebertiCS/Deenesse)
+---
+
+# Deenesse
 Update DNS name using cloudflare API
 
 ### Usage
