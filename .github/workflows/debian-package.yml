@@ -26,8 +26,7 @@ jobs:
 
       - name: Copy script and update control package version
         run: |
-          mkdir PKG_SOURCE
-          cp -f deeenese.py debian/usr/bin/deenesse
+          cp -f deenesse.py debian/usr/bin/deenesse
           sed -r "s/Version:.*/Version: ${{ steps.meta.outputs.tag }}/" debian/DEBIAN/control
           dpkg-deb --root-owner-group --build debian deenesse-${{ steps.meta.outputs.tag }}.deb
 
