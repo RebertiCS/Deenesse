@@ -5,7 +5,7 @@ on:
     branches:
       - main
     tags:
-    - "v**"
+      - "v**"
 
 jobs:
   build-deb:
@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
+        if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v')
         uses: actions/checkout@v3
         with:
           path: "REPO"
@@ -25,12 +26,14 @@ jobs:
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Copy script and update control package version
+        if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v')
         run: |
           cp -f deenesse.py debian/usr/bin/deenesse
           sed -r "s/Version:.*/Version: ${{ steps.meta.outputs.tag }}/" debian/DEBIAN/control
           dpkg-deb --root-owner-group --build debian deenesse-${{ steps.meta.outputs.tag }}.deb
 
       - name: Release the Package
+        if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v1
         with:
           files: deenesse-${{ steps.meta.outputs.tag }}.deb
