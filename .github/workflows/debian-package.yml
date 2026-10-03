@@ -28,7 +28,11 @@ jobs:
         run: |
           mkdir -p debian/usr/bin/
           cp deenesse.py debian/usr/bin/deenesse
-          sed -r "s/Version:.*/Version: ${{ steps.meta.outputs.tag }}/" debian/DEBIAN/control
+          sed -i -r "s/Version:.*/Version: ${{ steps.meta.outputs.tag }}/" debian/DEBIAN/control
+
+          chmod 755 debian/ -R
+          chmod +x debian/usr/bin/deenesse
+
           dpkg-deb --root-owner-group --build debian deenesse-${{ steps.meta.outputs.tag }}.deb
 
       - name: Release the Package
