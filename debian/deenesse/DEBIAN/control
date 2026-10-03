@@ -1,5 +1,5 @@
 Package: Deenesse
-Version: 1.3
+Version: 1.4
 Architecture: amd64
 Depends: python3-requests, python3-dotenv
 Maintainer: Reberti Carvalho Soares <rebertics@gmail.com>
