@@ -5,16 +5,33 @@ on:
     branches:
       - main
     tags:
-    - "**"
+    - "v**"
 
 jobs:
-  build-debs:
+  build-deb:
+    name: Create Package
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: jtdor/build-deb-action@v1
-        if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v')
-        env:
-          DEB_BUILD_OPTIONS: noautodbgsym
+      - name: Checkout code
+        uses: actions/checkout@v3
         with:
-          buildpackage-opts: --build=binary --no-sign
+          path: "REPO"
+
+      - name: Get package version
+        if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v')
+        id: meta
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Copy script and update control package version
+        run: |
+          mkdir PKG_SOURCE
+          cp -f deeenese.py debian/usr/bin/deenesse
+          sed -r "s/Version:.*/Version: ${{ steps.meta.outputs.tag }}/" debian/DEBIAN/control
+          dpkg-deb --root-owner-group --build debian deenesse-${{ steps.meta.outputs.tag }}.deb
+
+      - name: Release the Package
+        uses: softprops/action-gh-release@v1
+        with:
+          files: deenesse-${{ steps.meta.outputs.tag }}.deb
