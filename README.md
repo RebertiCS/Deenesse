@@ -1,6 +1,6 @@
 # Deenesse v1.0
 Update DNS name using cloudflare API
-![pylint]()
+![pylint](https://img.shields.io/badge/PyLint-9.05-yellow?logo=python&logoColor=white)
 
 ### Usage
 #### Configuration
