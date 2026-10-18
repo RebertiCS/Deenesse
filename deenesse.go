@@ -43,10 +43,6 @@ type DNSResult struct {
 
 
 func create_config() DNSConfig {
-	if len(os.Args) < 2 {
-		log.Fatal("Missing configuration file")
-	}
-
 	if err := godotenv.Load(os.Args[1]); err != nil {
 		log.Fatal(err)
 	}
@@ -172,30 +168,45 @@ func patch_record(config DNSConfig, record DNSRecord) {
 	}
 
 	if dns_data.Success {
-		log.Printf("Updated %s\n", record.Name)
+		log.Printf("[%s]: Updated!\n", record.Name)
 	} else {
-		log.Printf("Failed to update %s\n", record.Name)
+		log.Printf("[%s]: Failed Update.\n", record.Name)
 	}
 }
 
 func main() {
 
+	if len(os.Args) < 2 {
+		log.Fatal("Missing configuration file")
+	}
+
 	cf_config := create_config()
 	cf_records := get_records(cf_config)
 
-	log.Printf("Device IP: %s\n", cf_config.Ip)
+	updates := 0
+	checked := 0
 
-	for _, cf_record := range cf_records {
-
-		for _, target_dns := range cf_config.Dns {
+	for _, target_dns := range cf_config.Dns {
+		for _, cf_record := range cf_records {
 			if cf_record.Name == target_dns && cf_config.Ip != cf_record.Content {
-				log.Printf("Record: %s, IP %s, New IP %s", cf_record.Name, cf_record.Content, cf_config.Ip)
+				log.Printf("[%s]: Trying to update.\n", cf_record.Name)
 				patch_record(cf_config, cf_record)
+
+				updates++
+				checked++
+
 				break
 			} else if cf_record.Name == target_dns && cf_config.Ip == cf_record.Content {
-				log.Printf("Record: %s already updated, ignoring", target_dns)
+				log.Printf("[%s]: Already updated.\n", target_dns)
+
+				checked++
+
 				break
 			}
 		}
 	}
+
+	checks := len(cf_config.Dns)
+
+	log.Printf("Checked %d/%d, Updated %d/%d\n", checked, checks, updates, checks)
 }

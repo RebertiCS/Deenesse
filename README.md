@@ -1,15 +1,31 @@
-# Deenesse v1.0
-Update DNS name using cloudflare API
+# Deenesse
+Update DNS IPv6 using cloudflare API
 
-![pylint](https://img.shields.io/badge/PyLint-9.05-yellow?logo=python&logoColor=white)
+## Usage
+### Installing
 
-### Usage
+#### Building from source
+```bash
+go build .
+chmod +x deenesse
+sudo install deenesse /usr/bin/
+```
+
+#### Installing Debian Package
+```bash
+dkpk -i --install deenesse-<VERSION>.deb
+```
+
+### Running
+```bash
+deenesse <CONFIG_FILE>
+```
+
 #### Configuration
-Create `.env` file containing:
-
+Create config file in `/etc/deenesse/` (eg `dns-test.conf`) file containing:
 ```bash
 # Network device to get ipv6
-NETWORK_DEVICE="enp0s0"
+NETWORK_DEVICE="enp0s0" # Actual host device showed in ip addr
 
 # Cloudflare API Token
 CF_KEY="KEY"
@@ -20,12 +36,12 @@ CF_ZONE="ZONE_ID"
 # Enable Cloudflare Proxy
 CF_PROXY="False"
 
-# DNS Managed by the script
+# Target DNS
 CF_DNS="video.example.com,example.com"
 ```
 
-#### Running
+#### Systemctl
 ```bash
-chmod +x deenesse
-./deenesse [configuration]
+sudo systemctl enable --now deenesse@<CONFIG_FILE>.timer
+sudo systemctl enable --now deenesse@<CONFIG_FILE>.service
 ```
