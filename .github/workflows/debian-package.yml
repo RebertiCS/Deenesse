@@ -48,8 +48,12 @@ jobs:
 
           dpkg-deb --root-owner-group --build debian deenesse-${{ steps.meta.outputs.tag }}.deb
 
-      - name: Release the Package
+      - name: Upload debian package to release
         if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v1
+        uses: svenstaro/upload-release-action@v2
         with:
-          files: deenesse-${{ steps.meta.outputs.tag }}.deb
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: deenesse-${{ steps.meta.outputs.tag }}.deb
+          asset_name: deenesse
+          tag: ${{ github.ref }}
+          overwrite: true
