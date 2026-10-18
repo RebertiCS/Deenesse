@@ -52,7 +52,6 @@ jobs:
         if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.TOKEN }}
           files: deenesse-${{ steps.meta.outputs.tag }}.deb
           make_latest: true
-          overwrite: true
