@@ -185,13 +185,16 @@ func main() {
 
 	log.Printf("Device IP: %s\n", cf_config.Ip)
 
-	for _, cf_dns := range cf_records {
+	for _, cf_record := range cf_records {
 
 		for _, target_dns := range cf_config.Dns {
-
-			if cf_dns.Name == target_dns && cf_config.Ip != cf_dns.Content  {
-				log.Printf("Record: %s, IP %s, New IP %s", cf_dns.Name, cf_dns.Content, cf_config.Ip)
-				patch_record(cf_config, cf_dns)
+			if cf_record.Name == target_dns && cf_config.Ip != cf_record.Content {
+				log.Printf("Record: %s, IP %s, New IP %s", cf_record.Name, cf_record.Content, cf_config.Ip)
+				patch_record(cf_config, cf_record)
+				break
+			} else if cf_record.Name == target_dns && cf_config.Ip == cf_record.Content {
+				log.Printf("Record: %s already updated, ignoring", target_dns)
+				break
 			}
 		}
 	}
