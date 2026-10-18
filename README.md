@@ -1,5 +1,5 @@
 # Deenesse
-Update DNS name using cloudflare API
+Update DNS IPv6 using cloudflare API
 
 ## Usage
 ### Installing
@@ -18,7 +18,7 @@ dkpk -i --install deenesse-<VERSION>.deb
 
 ### Running
 ```bash
-deenesse dns-test.conf
+deenesse <CONFIG_FILE>
 ```
 
 #### Configuration
