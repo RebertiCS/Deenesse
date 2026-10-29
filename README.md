@@ -13,7 +13,7 @@ sudo install deenesse /usr/bin/
 
 #### Installing Debian Package
 ```bash
-dkpk -i --install deenesse-<VERSION>.deb
+dpkg -i --install deenesse-<VERSION>.deb
 ```
 
 ### Running
